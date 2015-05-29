@@ -1,0 +1,27 @@
+{
+    "name": "webSocket-chat-room",
+    "description": "webSocket 聊天室",
+    "version": "0.0.1",
+    "author": {
+        "name": "wzm111",
+        "email": "wzm111@vip.qq.com",
+        "url": "http://weibo.com/wzm82143820"
+    },
+    "bin": {
+        "wcr": "./bin/app"
+    },
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "wzm111"
+    },
+    "dependencies": {
+        "express": "*",
+        "socket.io": "*",
+        "log4js":"*"
+    }
+}

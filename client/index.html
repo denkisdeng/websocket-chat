@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0" name="viewport">
+    <title>老汪聊天室</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="css/emoticon.css" />
+    <!--[if lt IE 8]><script src="js/json3.min.js"></script><![endif]-->
+    <script src="http://10.24.13.71:8080/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+    <div id="loginbox">
+        <div style="width:260px;margin:200px auto;">
+            <h3>请先输入你在聊天室的昵称</h3>
+            <input type="text" style="width:180px;" placeholder="输入用户名!" maxlength="10" id="username" name="username" />
+            <input type="button" style="width:50px;" value="提交" onclick="CHAT.usernameSubmit();" />
+        </div>
+    </div>
+    <div id="chatbox" style="display:none;">
+        <div class="topheader">
+            <div style="line-height: 28px;color:#fff;">
+                <div style="margin-left:10px;float:left;" id="weather"></div>
+                <div style="float:right; margin-right:10px;">您好：<span id="showusername"></span> |
+                    <a href="javascript:;" onclick="CHAT.logout()" style="color:#fff;">注销</a></div>
+            </div>
+        </div>
+        <div id="doc">
+            <div id="chat">
+                <div id="message" class="message">
+                    <div id="onlinecount">
+                    </div>
+                </div>
+                <div class="subInfo">
+                    <div class="input-box" id="input-box">
+                        <div class="emoticon" id="message_face">
+                        </div>
+                        <div class="input">
+                            <input type="text" maxlength="140" placeholder="请输入聊天内容，按回车提交" id="content" name="content">
+                        </div>
+                        <div class="action">
+                            <button type="button" id="mjr_send" onclick="CHAT.submit();">提交</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="privateWrap" id="privateWrap">
+            <h5>私聊窗口</h5>
+            <span class="closed" id="closed">X</span>
+            <div id="private" class="private">
+            </div>
+        </div>
+    </div>
+    <script src="js/lib/zepto/zepto.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/emoticons.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/client.js" type="text/javascript" charset="utf-8" async defer></script>
+    <script type="text/javascript" charset="utf-8" async defer>
+    //Geolocation
+    function Geolocation() {
+        this.options = {
+            enableHighAccuracy: true,
+            maximumAge: 1000
+        };
+    }
+    Geolocation.prototype = {
+        init: function() {
+            if (navigator.geolocation) {
+                //获取当前地理位置
+                navigator.geolocation.getCurrentPosition(this.onSuccess, this.onError, this.options);
+            } else {
+                alert("你的浏览器不支持HTML5来获取地理位置信息。");
+            }
+        },
+        onSuccess: function(position) {
+            var coords = position.coords;
+            getGeo(coords);
+        },
+        onError: function(error) { //处理错误
+            switch (error.code) {
+                case 1:
+                    console.log("位置服务被拒绝。");
+                    break;
+                case 2:
+                    console.log("暂时获取不到位置信息。");
+                    break;
+                case 3:
+                    console.log("获取信息超时。");
+                    break;
+                default:
+                    console.log("未知错误。");
+                    break;
+            }
+            var position = {
+                "latitude": "32.0896618",
+                "longitude": "118.8882312"
+            };
+            getGeo(position);
+        }
+    }
+
+
+    function getGeo(coords) {
+        var url = "http://api.map.baidu.com/geocoder/v2/?ak=viuRn5cFQoHrGfIYNO0FjWIB&callback=jsonpGeo&location=" + coords.latitude + "," + coords.longitude + "&output=json&pois=0";
+        var JSONP = document.createElement("script");
+        JSONP.type = "text/javascript";
+        JSONP.src = url;
+        document.getElementsByTagName("head")[0].appendChild(JSONP);
+    }
+
+    function jsonpGeo(data) {
+        if (!(data instanceof Object && data.constructor == Object)) {
+            var data = JSON.parse(data);
+        }
+        var addressComponent = data.result.addressComponent;
+        var url = "http://api.map.baidu.com/telematics/v3/weather?location=" + addressComponent.city + "&output=json&ak=viuRn5cFQoHrGfIYNO0FjWIB&callback=weather";
+        var html = "<div class='addressComponent'><span class='province'>" + addressComponent.province + "</span><span class='city'>" + addressComponent.city + "</span><span id='wth' style='margin-left:10px;'>" + "</span></div>";
+        document.querySelector('#weather').innerHTML = html;
+        var JSONP = document.createElement("script");
+        JSONP.type = "text/javascript";
+        JSONP.src = url;
+        document.getElementsByTagName("head")[0].appendChild(JSONP);
+    }
+
+    function weather(data) {
+        if (!(data instanceof Object && data.constructor == Object)) {
+            var data = JSON.parse(data);
+        }
+        var weatherData = data['results'][0]['weather_data'];
+        html = weatherData[0]['weather'] + ' ' + weatherData[0]['wind'] + ' ' + weatherData[0]['temperature'];
+        document.querySelector('#wth').innerHTML = html;
+    }
+
+    window.onload = function() {
+        var geo = new Geolocation();
+        geo.init();
+    }
+    </script>
+</body>
+
+</html>
