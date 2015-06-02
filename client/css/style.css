@@ -328,7 +328,8 @@
      display: none;
  }
 
- .privateWrap .closed {
+ .privateWrap .closed,
+ .msgRecordWrap .closed {
      position: absolute;
      z-index: 1;
      top: 1px;
@@ -342,17 +343,83 @@
      cursor: pointer;
  }
 
- .privateWrap h5 {
+ .privateWrap h5,
+ .msgRecordWrap h5 {
      line-height: 30px;
      background: #f0f0f0;
      padding-left: 10px;
  }
 
- .private {
+ .privateWrap .private,
+ .msgRecordWrap .msgRecord {
      overflow-y: auto;
-     height: 270px;
-     min-height: 270px;
+     height: 268px;
+     min-height: 268px;
      background: #f7f7f7;
+ }
+
+ .msgRecordWrap .msgRecord {
+     margin-top: 0px;
+     height: 268px;
+     min-height: 100%;
+ }
+
+ .msgRecordWrap {
+     position: fixed;
+     top: 77px;
+     left: 642px;
+     width: 300px;
+     min-height: 300px;
+     border: 1px solid #ccc;
+     background: #fff;
+     display: none;
+ }
+
+ .msgRecordWrap .tabs {
+     overflow: hidden;
+     background: #f3f3f3;
+ }
+
+ .msgRecordWrap .tabs span {
+     float: left;
+     width: 30px;
+     height: 30px;
+     text-align: center;
+     line-height: 30px;
+     border: 1px solid #ddd;
+     margin: 10px 0 10px 10px;
+     cursor: pointer;
+     background: #fff;
+ }
+
+ .msgRecordWrap .tabs .curr {
+     border: 1px solid #d80;
+     background: #d80;
+     color: #fff;
+ }
+
+ .msgRecordWrap .conts {
+     margin: 0 10px;
+ }
+ .msgRecordWrap .conts .pages{
+     display: none;
+ }
+ .msgRecordWrap .conts .t {
+     font-weight: normal;
+     font-size: 12px;
+     word-break: break-all;
+     text-align: left;
+     line-height: 2em;
+     color: #999;
+ }
+
+ .msgRecordWrap .conts .c {
+     position: relative;
+     padding: 0 0 8px 0;
+     margin-bottom: 20px;
+     text-align: left;
+     vertical-align: top;
+     word-break: break-all;
  }
 
  .message section a {
@@ -422,6 +489,7 @@
  section.robot>div {
      word-break: break-word;
  }
+
  div.robot>div:before,
  section.robot>div:before,
  section.service>div:before,
@@ -619,6 +687,13 @@
 
  .input-box .action {
      width: 80px;
+ }
+
+ .input-box .msgRecordBtn {
+     width: 6em;
+     text-align: center;
+     line-height: 28px;
+     cursor: pointer;
  }
 
  .input input {

@@ -1,6 +1,6 @@
 (function() {
-    var docmt = document.compatMode == 'CSS1Compat' ? document.documentElement : document.body,
-        webUrl = '10.24.13.71';
+    var docmt = document.compatMode == 'CSS1Compat' ? document.documentElement : document.body;
+    var webUrl = '10.24.13.130';
     var toSay = '全体成员';
     var loginbox = $('#loginbox');
     var chatbox = $('#chatbox');
@@ -13,6 +13,8 @@
         msgObj: $("#message"),
         prvtObj: $("#private"),
         prvtWrap: $('#privateWrap'),
+        msgRecord: $('#msgRecordWrap'),
+        recordBtn: $('#msgRecordBtn'),
         screenheight: window.innerHeight ? window.innerHeight : docmt.clientHeight,
         username: null,
         userid: null,
@@ -111,8 +113,19 @@
             this.username = username;
 
             showusername.html(this.username);
-            this.msgObj.css('min-height', this.screenheight - document.body.clientHeight + this.msgObj.height())
+            var height = this.screenheight - document.body.clientHeight + this.msgObj.height();
+            this.msgObj.css('min-height', height);
+            this.msgRecord.css('min-height', height - 80);
             this.scrollToBottom();
+
+            this.recordBtn.on('click', function(event) {
+                if ($(this).attr('data-load')) {
+                    closeMsg();
+                    return false;
+                }
+                ajaxMsgrecord($(this));
+                CHAT.msgRecord.find('.msgRecord').css('height', height - 110);
+            });
 
 
             var newURL = "index.html?isLogin=true";
@@ -154,7 +167,7 @@
                 var section = document.createElement('section');
                 if (isme) {
                     section.className = 'user';
-                    section.innerHTML = '<span>你对大家说：</span>' + contentDiv ;
+                    section.innerHTML = '<span>你对大家说：</span>' + contentDiv;
                 } else {
                     section.className = 'service';
                     section.innerHTML = '<span>' + username + '对大家说：</span>' + contentDiv;
@@ -188,6 +201,61 @@
 
         }
     };
+
+    //加载聊天记录
+    function ajaxMsgrecord(ele) {
+        $.ajax({
+            type: "GET",
+            url: 'http://' + webUrl + ':8080/data/db',
+            dataType: "json",
+            timeout: 10000,
+            cache: false,
+            success: function(data) {
+                var chats = data.chats.reverse();
+                var total = data.total[0].size;
+                var pagesLen = Math.floor(total / 20);
+                var tabs = '';
+                var pages = '';
+                var tpl = '';
+                for (var i = 0; i <= pagesLen; i++) {
+                    tabs += '<span>' + (i + 1) + '</span>';
+                    pages += '<div class="pages"></div>';
+                }
+                CHAT.msgRecord.find('.tabs').html(tabs).find('span').eq(0).addClass('curr');
+                CHAT.msgRecord.find('.conts').html(pages).find('.pages').eq(0).show();
+
+                chats.forEach(function(o, i) {
+                    var page = Math.floor(i / 20);
+                    var t = '<div class="t">' + o.username + ' ' + o.time + '</div>';
+                    var c = '<div class="c">' + o.content.emotionsToHtml() + '</div>';
+                    tpl += t + c;
+
+                    if ((i + 1) % 20 === 0 || (i + 1) === total) {
+                        CHAT.msgRecord.find('.conts').find('.pages').eq(page).html(tpl);
+                        tpl = '';
+                    }
+                })
+
+                CHAT.msgRecord.find('.tabs').find('span').on('click', function(event) {
+                    $(this).addClass('curr').siblings().removeClass('curr');
+                    CHAT.msgRecord.find('.conts').find('.pages').eq($(this).index()).show().siblings().hide();
+                    var URL = "?isLogin=true&page=" + ($(this).index() + 1);
+                    history.pushState(null, '', URL);
+                });
+                var URL = "?isLogin=true&page=1";
+                history.pushState(null, '', URL);
+                ele.attr('data-load', '0');
+                CHAT.msgRecord.show();
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                console.log('error');
+                // console.log(XMLHttpRequest);
+                // console.log(textStatus);
+                // console.log(errorThrown);
+                // console.log(XMLHttpRequest.readyState);
+            }
+        });
+    }
 
     //正则符号
     function reg(txt) {
@@ -245,14 +313,49 @@
         var closed = $(closed);
         closed.on('click', function(ele) {
             CHAT.prvtWrap.hide();
-        }, false)
+        })
     }
 
-    //history监听后退
-    window.addEventListener("popstate", function() {
-        var currentState = history.state;
-    });
+    //关闭聊天记录
+    function closedMsgRecord(closed) {
+        var closed = $(closed);
+        closed.on('click', function(ele) {
+            closeMsg();
+        })
+    }
 
+    function closeMsg() {
+        CHAT.msgRecord.hide();
+        CHAT.msgRecord.find('.tabs').html('');
+        CHAT.msgRecord.find('.conts').html('');
+        CHAT.recordBtn.attr('data-load', '');
+        var URL = window.location.href.split('?')[0];
+        history.pushState(null, '', URL + '?isLogin=true');
+    }
+
+
+    //history监听后退
+    var isHistoryApi = !!(window.history && history.pushState);
+    if (isHistoryApi) {
+        $(window).on("popstate", function(event) {
+            fnHistoryPage();
+        });
+    }
+
+    function fnHistoryPage() {
+        var query = location.href.split("?")[1];
+        if (query) {
+            if (query.indexOf('page') > 0) {
+                var pages = query.match(/page=(\d+)/g)[0].split('=')[1];
+                CHAT.msgRecord.find('.tabs').find('span').eq(pages-1).addClass('curr').siblings().removeClass('curr');
+                CHAT.msgRecord.find('.conts').find('.pages').eq(pages-1).show().siblings().hide();
+            }else{
+                closeMsg();
+            }
+        }
+    }
+
+    //是否存在缓存用户名
     function haveLoginName() {
         var loginName = localStorage.getItem('loginName');
         if (loginName) {
@@ -267,11 +370,14 @@
         var newURL = window.location.href.split('?')[0];
         history.pushState(null, '', newURL);
         haveLoginName();
-        closedPrivate('#closed');
+        closedPrivate('#privateClosed');
+        closedMsgRecord('#msgClosed');
         $("#message_face").jqfaceedit({
             txtAreaObj: $('#content'),
             containerObj: $('#input-box'),
             textareaid: 'content'
         });
     })()
+
+
 })();

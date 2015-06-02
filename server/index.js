@@ -1,17 +1,14 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-
-app.get('/', function(req, res) {
-    res.send('<h1>Welcome 多人聊天室</h1>');
-});
+var uuid = require('uuid');
 
 //跟express集成，可以输出客户端GET 或 POST的url
 // var log = require('./log');
 // log.use(app);
 
 //日志
-var logger = require("./log").helper;
+var logger = require("./util/log/log").helper;
 //logger.writeInfo("用户日志");
 //logger.writeDebug("调试");
 //logger.writeErr("出错了" , exp);
@@ -19,6 +16,8 @@ var logger = require("./log").helper;
 //logger.writeLogout("登出");
 //logger.writeChat("聊天信息");
 
+//数据
+var db = require("./util/db/db").lowdb;
 
 //在线用户
 var onlineUsers = {};
@@ -104,6 +103,7 @@ io.on('connection', function(socket) {
 
     //监听用户发布聊天内容
     socket.on('message', function(obj) {
+        var newObj = {};
         if (obj.content.indexOf('@') >= 0) {
             var userArr = obj.content.match(/@[\u4e00-\u9fa5+\w+]+/g);
         }
@@ -116,10 +116,22 @@ io.on('connection', function(socket) {
             }
         }
         if (obj.touser === '全体成员') {
+            var username = obj.username;
+            var content = obj.content;
+            var date = new Date();
+            var getDate = getMeta(date);
+
+            newObj['id'] = uuid();
+            newObj['username'] = username;
+            newObj['content'] = content;
+            newObj['time'] = getDate.year + '-' + getDate.month + '-' + getDate.day + ' ' + getDate.hour + ':' + getDate.minute + ':' + getDate.second;
+
+            //newObj.time = time;
             //向所有客户端广播发布的消息
             io.emit('all', obj);
-            logger.writeChat(obj.username + '对所有人说：' + obj.content);
-            console.log(obj.username + '对所有人说：' + obj.content);
+            logger.writeChat(username + '对所有人说：' + content);
+            db.setItem(newObj);
+            console.log(username + '对所有人说：' + content);
         } else {
             for (key in onlineUsers) {
                 if (obj.touser === key) {
@@ -142,6 +154,82 @@ function reg(txt) {
     }
     return true;
 }
-http.listen(8080, function() {
-    console.log('listening on *:8080');
+
+//获取时间
+function getMeta(date) {
+    if (!date) {
+        return null;
+    }
+    var YYYY = date.getFullYear(),
+        MM = date.getMonth(),
+        DD = date.getDate(),
+        hh = date.getHours(),
+        mm = date.getMinutes(),
+        ss = date.getSeconds();
+    return {
+        year: YYYY,
+        month: dbl00(MM + 1),
+        day: dbl00(DD),
+        hour: dbl00(hh),
+        minute: dbl00(mm),
+        second: dbl00(ss)
+    }
+}
+
+function dbl00(num) {
+    return num < 10 ? '0' + num : num;
+}
+
+app.get('/', function(req, res) {
+    res.send('<h1>Welcome</h1>');
 });
+
+var urllib = require('url');
+var chatsDB = null;
+
+app.all('*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
+    res.header("X-Powered-By", ' 3.2.1')
+    res.header("Content-Type", "application/json;charset=utf-8");
+    next();
+});
+
+app.get('/data/db?*', function(req, res) {
+    delete require.cache[require.resolve('./data/chats.json')];
+    chatsDB = require('./data/chats.json');
+    console.log(chatsDB.total[0].size);
+    var params = urllib.parse(req.url, true);
+    var query = params.query;
+    if (query && query.callback) {
+        //var str = params.query.callback + '(' + JSON.stringify(chatsDB) + ')'; //jsonp
+        res.jsonp(JSON.stringify(chatsDB));
+    } else {
+        res.send(JSON.stringify(chatsDB)) //普通的json
+    }
+});
+
+
+
+
+// var port = 8888;
+// var urllib = require('url');
+// require('http').createServer(function(req, res) {
+//     var params = urllib.parse(req.url, true);
+//     if (params.query && params.query.callback) {
+//         //console.log(params.query.callback);
+//         var str = params.query.callback + '(' + JSON.stringify(chatsDB) + ')'; //jsonp
+//         console.log(str)
+//         res.end(str);
+//     } else {
+//         res.end(JSON.stringify(chatsDB)); //普通的json
+//     }
+// }).listen(port, function() {
+//     console.log('data is listening on port' + port);
+// })
+
+
+http.listen(8080, function() {
+    console.log('server is listening on port ' + 8080);
+})

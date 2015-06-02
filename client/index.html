@@ -11,7 +11,6 @@
     <link rel="stylesheet" type="text/css" href="css/style.css" />
     <link rel="stylesheet" type="text/css" href="css/emoticon.css" />
     <!--[if lt IE 8]><script src="js/json3.min.js"></script><![endif]-->
-    <script src="http://10.24.13.71:8080/socket.io/socket.io.js"></script>
 </head>
 
 <body>
@@ -46,18 +45,30 @@
                         <div class="action">
                             <button type="button" id="mjr_send" onclick="CHAT.submit();">提交</button>
                         </div>
+                        <div class="msgRecordBtn" id="msgRecordBtn">
+                            <span>聊天记录</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="privateWrap" id="privateWrap">
             <h5>私聊窗口</h5>
-            <span class="closed" id="closed">X</span>
+            <span class="closed" id="privateClosed">X</span>
             <div id="private" class="private">
+            </div>
+        </div>
+        <div class="msgRecordWrap" id="msgRecordWrap">
+            <h5>聊天记录</h5>
+            <span class="closed" id="msgClosed">X</span>
+            <div id="msgRecord" class="msgRecord">
+                <div class="tabs"></div>
+                <div class="conts"></div>
             </div>
         </div>
     </div>
     <script src="js/lib/zepto/zepto.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/lib/socket.io/socket.io.js"></script>
     <script src="js/emoticons.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/client.js" type="text/javascript" charset="utf-8" async defer></script>
     <script type="text/javascript" charset="utf-8" async defer>

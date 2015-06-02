@@ -1,0 +1,39 @@
+{
+    "customBaseDir": "F:/socketio/server/logs/",
+    "customDefaultAtt": {
+        "type": "dateFile",
+        "absolute": true,
+        "alwaysIncludePattern": true
+    },
+    "appenders": [{
+        "type": "console",
+        "category": "console"
+    }, {
+        "pattern": "debug/yyyyMMddhh.txt",
+        "category": "logDebug"
+    }, {
+        "pattern": "info/yyyyMMddhh.txt",
+        "category": "logInfo"
+    }, {
+        "pattern": "err/yyyyMMddhh.txt",
+        "category": "logErr"
+    }, {
+        "pattern": "login/yyyyMMddhh.txt",
+        "category": "logLogin"
+    }, {
+        "pattern": "logout/yyyyMMddhh.txt",
+        "category": "logLogout"
+    }, {
+        "pattern": "chat/yyyyMMddhh.txt",
+        "category": "logChat"
+    }],
+    "replaceConsole": true,
+    "levels": {
+        "logDebug": "DEBUG",
+        "logInfo": "DEBUG",
+        "logErr": "DEBUG",
+        "logLogin": "DEBUG",
+        "logLogout": "DEBUG",
+        "logChat": "DEBUG"
+    }
+}
